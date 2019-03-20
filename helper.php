@@ -23,7 +23,7 @@ class Service {
 		
 	 }
 // function to identify the last day of calculation	 
-	 function LastServiceDay($current)
+	 function LastDay($current)
 	 {
 	   $curr = new DateTime($current);
 	   if (($this->ending_at > $curr) and ($this->create_at < $curr))
@@ -35,9 +35,9 @@ class Service {
 	 }
 	 
 //1	 
-	 function ServiceValidDays($ending_at)
+	 function ValidDays($ending_at)
 	 {
-	 	$end = $this->LastServiceDay($ending_at);
+	 	$end = $this->LastDay($ending_at);
 		if ($this->create_at<$end)
 		 return $this->create_at->diff($end)->format("%a");
 		else return 0;
@@ -47,51 +47,51 @@ class Service {
 	 function IsActive($ending_at)
 	 {
 		$now = new DateTime();
-	 	$end = $this->LastServiceDay($ending_at);
+	 	$end = $this->LastDay($ending_at);
 		if (($end < $now) and ($this->create_at < $now))
-		 return 1;
+		 return 0;
 		else 
-		 return 0; 
+		 return 1; 
 	 }
 //3
-	 function IsSExpiring($ending_at)
+	 function IsExpiring($ending_at)
 	 {
 	    $now = new DateTime();
-	 	$end = $this->LastServiceDay($ending_at);
+	 	$end = $this->LastDay($ending_at);
 		if ($now < $end) 
-			 if ($now->diff($end)->days <10) return 'Expiring';
-			 else return 'Not Expiring';
-		else return 'Expired';	 
+			 if ($end->diff($now)->days <=10) return 1;
+			 else return 0;
+		else return 0;	//the service is expired 
 	 }
 //4	 
 	 function DaysOfExpiration($ending_at)
 	 {
 	 	$now = new DateTime(); 
-	 	$end = $this->LastServiceDay($ending_at);
+	 	$end = $this->LastDay($ending_at);
 		if ($now>$end) 
 		 if ($now->diff($end)->format("%a")<=10) return $now->diff($end)->format("%a");
-		 else return 'the service is expired';
-		else return 'The service is not expired';
+		 else return 0; //'the service is expired'
+		else return 0; //'The service is not expired'
 	 }
 //5	 
 	  function IsOnDelete($ending_at)
 	  {
 	  	$now = new DateTime(); 
-		$end = $this->LastServiceDay($ending_at);
+		$end = $this->LastDay($ending_at);
         if (($now>$end) and ($now->diff($end)->format("%a")<=10)) return 1;
 		else return 0;
 	  }
 //6	  
 	  function FinalExpirationDate($ending_at)
 	  {
-		$end = $this->LastServiceDay($ending_at);
-		return $end+10;
+		$end = $this->LastDay($ending_at);
+		return $end->modify('+10 day');
 	  }
 //7	  
-      function  IsFinallyExpired()
+      function  IsFinallyExpired($ending_at)
 	  {
 	    $now = new DateTime(); 
-		$end = $this->LastServiceDay($ending_at);
+		$end = $this->LastDay($ending_at);
         if (($now>$end) and ($now->diff($end)->format("%a")>10)) return 1;
 		else return 0;
 	   
@@ -100,8 +100,8 @@ class Service {
 	 
 }
 $Created_at='2019-03-01 03:25:11';
-$Ending_at='2019-03-09 02:25:11';
-$Ending_input='2019-03-08 08:25:11';
+$Ending_at='2019-03-20 22:25:11';
+$Ending_input='2019-03-20 22:25:11';
 
 $ServiceExample= new Service(1,1,2,'busy',$Created_at,$Ending_at);
 echo "incoming info:</br>";
@@ -111,17 +111,26 @@ echo "Ending_input:",$Ending_input, '</br>';
 echo '</br>';
 //1
 echo 'ServiceValidDays:  ';
-echo $ServiceExample->ServiceValidDays($Ending_input);
-/*//2
-if ($ServiceExample->IsServiceActive($Ending_at)) echo 'Service is active';
+echo $ServiceExample->ValidDays($Ending_input);
+echo '</br>';
+//2
+if ($ServiceExample->IsActive($Ending_input)) echo 'Service is active';
 else echo 'Service no active';
 //3
-echo '</br>IsServiceExpiring:   ';
-echo $ServiceExample->IsServiceExpiring($Ending_at);
-
+echo '</br>IsExpiring:   ';
+echo $ServiceExample->IsExpiring($Ending_input);
+//4
 echo '</br>DaysOfExpiration:   ';
-echo $ServiceExample->DaysOfExpiration($Ending_at);*/
-
+echo $ServiceExample->DaysOfExpiration($Ending_input);
+//5
+echo '</br>IsOnDelete:   ';
+echo $ServiceExample->IsOnDelete($Ending_input);
+//6
+echo '</br>FinalExpirationDate:   ';
+echo $ServiceExample->FinalExpirationDate($Ending_input)->format('Y-m-d H:i:s');
+//7
+echo '</br>IsFinallyExpired:   ';
+echo $ServiceExample->IsFinallyExpired($Ending_input);
 
 
 
